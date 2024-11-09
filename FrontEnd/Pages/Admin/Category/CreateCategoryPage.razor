@@ -1,0 +1,48 @@
+﻿@page "/createCategory"
+@using eCommerce.SharedLibrary.DTOs.Category
+<h3>CategoryPage</h3>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="card">
+                <div class="card-header">Manage Category</div>
+                <div class="card-body">
+                    @if (ShowAlert)
+                    {
+                        <div class="alert alert-@Alert">@Message</div>
+                    }
+                    
+                    <EditForm Model="Category" OnValidSubmit="SaveCategory">
+                        <DataAnnotationsValidator/>
+                        <div class="form-group">
+                            <InputText class="form-control" @bind-Value="Category.Name"></InputText>
+                            <ValidationMessage For="() => Category.Name"/>
+                        </div>
+                        <button class="btn btn-primary mt-3" type="submit">Save</button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    string Message = null!;
+    string Alert = "success";
+    bool ShowAlert = false;
+    public CreateCategory Category { get; set; } = new();
+    private async Task SaveCategory()
+    {
+        ShowAlert = false;
+        var result = await categoryService.CreateCategory(Category);
+        if(result.Success)
+        {
+            Message = result.Message;
+        }
+        else
+        {
+            Alert = "danger";
+            Message = result.Message;
+        }
+        ShowAlert = true;
+    }
+}

@@ -1,0 +1,75 @@
+﻿@page "/categoryList"
+@using eCommerce.SharedLibrary.DTOs.Category
+<div class="container-sm">
+    <div class="row">
+        <div class="card">
+            <div class="card-header"> Category List</div>
+           <div class="card-body">
+                @if (ShowAlert)
+                {
+                    <div class="alert alert-@Alert">@Message</div>
+                }
+               <table class="table table-striped table-bordered">
+                   <thead>
+                       <tr>
+                           <th>ID</th>
+                           <th>Name</th>
+                           <th>Action</th>
+                       </tr>
+                   </thead>
+                   <tbody>
+                       @if(Categories.Any())
+                        {
+                            foreach(var category in Categories)
+                            {
+                                <tr>
+                                    <td>@category.Id</td>
+                                    <td>@category.Name</td>
+                                    <td>
+                                        <a class="nav-link text-danger " @onclick="()=> DeleteCategory(category.Id)">Delete</a> |
+                                        <a class="nav-link text-primary " href="@($"updateCategory/{category.Id}")">Update</a>
+                                        </td>
+                                </tr>
+                            }
+
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="2">No Category Found</td>
+                            </tr>
+                        }
+                    </tbody>
+               </table>
+           </div>
+        </div>
+    </div>
+</div>
+@code {
+    string Message = null!;
+    string Alert = "success";
+    bool ShowAlert = false;
+    public IEnumerable<GetCategory> Categories { get; set; } = [];
+    protected override async Task OnInitializedAsync()
+    {
+        await GetCategories();
+    }
+    private async Task GetCategories() => Categories = await categoryService.GetCategories();
+    async Task DeleteCategory(int id)
+    {
+        ShowAlert = false;
+        var result = await categoryService.DeleteCategory(id);
+        if (result.Success)
+        {
+            Message = result.Message;
+            await GetCategories();
+        }
+        else
+        {
+            Alert = "danger";
+            Message = result.Message;
+        }
+        ShowAlert = true;
+
+    }
+}
