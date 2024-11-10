@@ -1,7 +1,77 @@
 ﻿@page "/"
+@using System.Text.Json
+@using NetcodeHub.Packages.Components.Toast
+@using SharedLibrary.Dtos.Cart
+@using eCommerce.SharedLibrary.DTOs.Product
 
 <PageTitle>Home</PageTitle>
+<div class="container-fluid">
+    <div class="row">
+        @if (Products.Any())
+        {
+            foreach (var product in Products)
+            {
+                <div class="col-lg-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <img class="img-fluid" src="@product.Base64Image" />
+                        </div>
+                        <div class="card-footer">
+                            <div class="vstack gap-1">
+                                <h5 class="text-center">@product.Name</h5>
+                                <muted class="fs-6">@GetDescription(product.Description)</muted>
+                                <h6 class="text-center text-danger fw-bold">Rs. @product.Price</h6>
+                                <button class="btn  btn-danger btn-sm" @onclick="() => AddToCart(product)">Add To Cart</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-<h1>Hello, world!</h1>
+            }
 
-Welcome to your new app.
+        }
+        else
+        {
+            
+                <span>No Product Found</span>
+           
+        }
+    </div>
+</div>
+ <NetcodeHubToast @ref="ToastComponent" 
+                              Position="@ToastPosition.Bottom()" 
+                              IconClass="bi bi-check" 
+                              Persist="false" 
+                              Duration=4000/>
+
+@code {
+    NetcodeHubToast? ToastComponent;
+    public IEnumerable<GetProduct> Products { get; set; } = [];
+    protected override async Task OnInitializedAsync()
+    {
+        Products = await productService.GetProducts();
+    }
+
+    string GetDescription(string description)
+    {
+        if (description.Length > 100)
+            return $"{description.Substring(0, 100)}...";
+        else
+            return description;
+    }
+
+    List<CartModel> Carts = [];
+    async Task AddToCart(GetProduct product)
+    {
+        Carts.Add(new CartModel
+        {
+            ProductId = product.Id,
+            Name = product.Name,
+            PurchaseQuantity = 1,
+            Price = product.Price,
+            Base64Image = product.Base64Image
+        });
+        await localStorageService.SaveAsStringAsync("cart", JsonSerializer.Serialize(Carts));
+        await ToastComponent!.ShowSuccessToast("Cart", "Product Added To Cart");
+    }
+}

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 //Entities are used to model your domain
@@ -21,7 +22,7 @@ namespace eCommerce.Domain.Entities
         public string Base64Image { get; set; }
 
         public DateTime CreatedDate { get; set; }
-
+        [JsonIgnore]
         // Relationship : many to One
         public Category? Category { get; set; }
         

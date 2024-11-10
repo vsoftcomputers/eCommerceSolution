@@ -16,6 +16,7 @@ namespace FrontEnd.Services.Category
 
         public async Task<ServiceResponse> DeleteCategory(int id)
         {
+            // This deletes category from api endpoint
             var result = await client.DeleteAsync($"api/category/delete/{id}");
             var response = await result.Content.ReadFromJsonAsync<ServiceResponse>();
             return response!;

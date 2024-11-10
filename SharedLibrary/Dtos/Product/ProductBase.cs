@@ -13,9 +13,9 @@ namespace eCommerce.SharedLibrary.DTOs.Product
         public string Name { get; set; }
         [Required]
         public string Description { get; set; }
-        [Required]
+        [Required, DeniedValues(0.00, ErrorMessage = "Price is required")]
         public decimal Price { get; set; }
-        [Required]
+        [Required, DeniedValues(0, ErrorMessage = "Quantity is required")]
         public int Quantity { get; set; }
         [Required]
         public string Base64Image { get; set; }

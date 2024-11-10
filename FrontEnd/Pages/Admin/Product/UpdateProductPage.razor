@@ -1,0 +1,143 @@
+﻿@page "/updateProduct/{Id:int}"
+@using eCommerce.SharedLibrary.DTOs.Category
+@using eCommerce.SharedLibrary.DTOs.Product
+<h3>ProductPage</h3>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card">
+                <div class="card-header">Manage Product</div>
+                <div class="card-body">
+                    @if (ShowAlert)
+                    {
+                        <div class="alert alert-@Alert">@Message</div>
+                    }
+
+                    <EditForm Model="Product" OnValidSubmit="UpdateProduct">
+                        <DataAnnotationsValidator />
+                        <div class="form-group mt-2">
+                            <label class="form-label">Product Name</label>
+                            <InputText class="form-control" @bind-Value="Product.Name"></InputText>
+                            <ValidationMessage For="() => Product.Name" />
+                        </div>
+                        <div class="form-group mt-2">
+                            <label class="form-label">Product Category</label>
+                            @if (Categories != null)
+                            {
+                                <InputSelect @bind-Value="Product.CategoryId" class="form-select">
+                                    @foreach (var cat in Categories)
+                                    {
+                                        <option value="@cat.Id">@cat.Name</option>
+                                    }
+                                </InputSelect>
+                            }
+                            <ValidationMessage For="() => Product.CategoryId" />
+                        </div>
+                        <div class="form-group mt-2">
+                            <label class="form-label">Product Description</label>
+                            <InputText class="form-control" @bind-Value="Product.Description"></InputText>
+                            <ValidationMessage For="() => Product.Description" />
+                        </div>
+                            <div class="form-group mt-2">
+                                <label class="form-label">Product Price</label>
+                            <InputNumber class="form-control" @bind-Value="Product.Price"></InputNumber>
+                            <ValidationMessage For="() => Product.Price" />
+                            </div>
+                           <div class="form-group mt-2">
+                               <label class="form-label">Product Quantity</label>
+                            <InputNumber class="form-control" @bind-Value="Product.Quantity"></InputNumber>
+                            <ValidationMessage For="() => Product.Quantity" />
+                           </div>
+                        <div class="form-group mt-2">
+                            <label class="form-label">Select Product Image</label>
+                            <NetcodeHubFileUpload @ref="FileUploadComponent"
+                                                  Notify="RetrieveBase64String"
+                                                  Multiple=false
+                                                  RequiredExtensions="RequiredEx"
+                                                  ShowDisplay="false" />
+                        </div>
+                        <div class="form-group">
+                            <img width="50" height="50" class="float-start" src="@Product.Base64Image" />
+                        </div>
+                       
+                        
+                        <button class="btn btn-primary mt-3 float-end" type="submit">Update</button>
+                    </EditForm>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    List<string> RequiredEx = [".jpg", ".png", ".jpeg"];
+
+    NetcodeHubFileUpload? FileUploadComponent;
+    public IEnumerable<GetCategory> Categories { get; set; }
+    [Parameter] public int Id { get; set; } = 0;
+    string Message = null!;
+    string Alert = "success";
+    bool ShowAlert = false;
+    public CreateProduct Product { get; set; } = new();
+    private async Task UpdateProduct()
+    {
+        ShowAlert = false;
+        var result = await productService.UpdateProduct(new UpdateProduct
+            {
+                Id = Id,
+                Name = Product.Name,
+                Description = Product.Description,
+                Price = Product.Price,
+                Quantity = Product.Quantity,
+                Base64Image = Product.Base64Image,
+                CategoryId = Product.CategoryId
+            });
+        if (result.Success)
+        {
+            Alert = "success";
+            Message = result.Message;
+        }
+        else
+        {
+            Alert = "danger";
+            Message = result.Message;
+        }
+        ShowAlert = true;
+    }
+
+    public GetCategory SelectedCategory { get; set; }
+    protected async override Task OnParametersSetAsync()
+    {
+        if (Id <= 0) return;
+        var product = await productService.GetProduct(Id);
+        Product.Name = product.Name;
+        Product.Description = product.Description;
+        Product.Price = product.Price;
+        Product.Quantity = product.Quantity;
+        Product.Base64Image = product.Base64Image;
+        Product.CategoryId = product.Category.Id;
+        SelectedCategory = product.Category;
+        Categories = await categoryService.GetCategories();
+    }
+
+    void RetrieveBase64String(NetcodeHubUploadModel incomingFiles)
+    {
+        ShowAlert = false;
+        if (incomingFiles.FileModel is not null)
+        {
+            foreach (var item in incomingFiles.FileModel.IBrowserFiles!)
+            {
+                // This is for single.
+                var getFileNameAndBase64String = incomingFiles.FileModel.BaseFiles!.FirstOrDefault(_ => _.Key.Equals(item.Name, StringComparison.OrdinalIgnoreCase));
+
+                if (getFileNameAndBase64String.Key != null)
+                    Product.Base64Image = getFileNameAndBase64String.Value;
+            }
+        }
+        Message = incomingFiles.Message;
+        if (!string.IsNullOrEmpty(Message))
+        {
+            ShowAlert = true;
+            Alert = "danger";
+        }
+    }
+}

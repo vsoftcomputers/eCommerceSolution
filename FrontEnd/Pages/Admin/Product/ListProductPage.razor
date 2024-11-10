@@ -1,0 +1,85 @@
+﻿@page "/productList"
+@using eCommerce.SharedLibrary.DTOs.Product
+<div class="container-sm">
+    <div class="row">
+        <div class="card">
+            <div class="card-header"> Product List</div>
+            <div class="card-body">
+                @if (ShowAlert)
+                {
+                    <div class="alert alert-@Alert">@Message</div>
+                }
+                <table class="table table-striped table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Image</th>
+                            <th>ID</th>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Products.Any())
+                        {
+                            foreach (var product in Products)
+                            {
+                                <tr>
+                                    <td><img src="@product.Base64Image"  width="50" height="50"/></td>
+                                    <td>@product.Id</td>
+                                    <td>@product.Name</td>
+                                    <td>@product.Category!.Name</td>
+                                    <td>@product.Description</td>
+                                    <td>@product.Price</td>
+                                    <td>@product.Quantity</td>
+                                    <td>
+                                        <a class="nav-link text-danger " @onclick="()=> DeleteProduct(product.Id)">Delete</a> 
+                                        <a class="nav-link text-primary " href="@($"updateProduct/{product.Id}")">Update</a>
+                                    </td>
+                                </tr>
+                            }
+
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="2">No Category Found</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    string Message = null!;
+    string Alert = "success";
+    bool ShowAlert = false;
+    public IEnumerable<GetProduct> Products { get; set; } = [];
+    protected override async Task OnInitializedAsync()
+    {
+        await GetProducts();
+    }
+    private async Task GetProducts() => Products = await productService.GetProducts();
+    async Task DeleteProduct(int id)
+    {
+        ShowAlert = false;
+        var result = await productService.DeleteProduct(id);
+        if (result.Success)
+        {
+            Message = result.Message;
+            await GetProducts();
+        }
+        else
+        {
+            Alert = "danger";
+            Message = result.Message;
+        }
+        ShowAlert = true;
+
+    }
+}

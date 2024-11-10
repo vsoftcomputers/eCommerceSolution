@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 //Entities are used to model your domain
@@ -15,6 +16,7 @@ namespace eCommerce.Domain.Entities
 
         // Relationship : One to many
         // One Category to Many product
+       
         public ICollection<Product>? Products { get; set; }
     }
 }

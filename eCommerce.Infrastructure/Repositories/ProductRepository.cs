@@ -40,14 +40,14 @@ namespace eCommerce.Infrastructure.Repositories
 
         public async Task<Product> GetProductById(int id)
         {
-            var product = await context.Products.FindAsync(id);
-            if (product == null) return null!;
+            var product = await context.Products.Include(c => c.Category).FirstOrDefaultAsync(p => p.Id == id);
+                if (product == null) return null!;
             return product;
         }
 
         public async Task<IEnumerable<Product>> GetProducts()
         {
-            var products = await context.Products.AsNoTracking().ToListAsync();
+            var products = await context.Products.Include(c => c.Category).AsNoTracking().ToListAsync();
             if (products == null) return null!;
             return products;
         }
